@@ -31,12 +31,6 @@ app.config["username"] = ""
 app.config["password"] = ""
 app.config["port"] = "9200"
 
-@app.route('/')
-def home():
-    """Return a friendly HTTP greeting."""
-    return 'Hello The GoT QNA API is running, please use the following format to obtain an answer: /qna/"My question goes here?"'
-
-
 
 @app.route('/update_docustore')
 def update_docustore():
@@ -63,6 +57,12 @@ def update_docustore():
             'document available at http://'+ app.config["host"] +':'
             + app.config["port"] +'/' + index + '/_search',
             'result': []})
+
+
+@app.route('/')
+def home():
+    """Return a friendly HTTP greeting."""
+    return 'Hello, welcome to the Game of Thrones Extractive QA, please use the following format to obtain an answer: /qna/"My question goes here?"'
 
 
 @app.route('/qna/<question>')
@@ -92,8 +92,6 @@ def qna(question):
         answer.append(res['answer'])
 
     return json.dumps({'status':'success','message': 'Process succesfully', 'result': answer})
-
-
 
 
 @app.errorhandler(500)
