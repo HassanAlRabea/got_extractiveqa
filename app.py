@@ -1,19 +1,13 @@
 # import packages
 import json
-import os
 import logging
 from flask_cors import CORS
 from flask import Flask, request, jsonify
-from haystack import Finder
 from haystack.preprocessor.cleaning import clean_wiki_text
 from haystack.preprocessor.utils import convert_files_to_dicts
 from haystack.reader.farm import FARMReader
 from haystack.document_store.elasticsearch import ElasticsearchDocumentStore
-from haystack.retriever.dense import DensePassageRetriever
 from haystack.retriever.sparse import ElasticsearchRetriever
-from haystack.preprocessor.utils import convert_files_to_dicts
-from haystack.reader.transformers import TransformersReader
-from haystack.preprocessor.preprocessor import PreProcessor
 from haystack.pipeline import ExtractiveQAPipeline
 
 #application settings
@@ -84,7 +78,7 @@ def qna(question):
     # in a pipeline to answer our actual questions.
     pipe = ExtractiveQAPipeline(reader, retriever)
 
-    # predict n answers
+    # predict n answers - ADD MORE INFOR HERE
     prediction = pipe.run(query=question, top_k_retriever=10, top_k_reader=5)
     answer = []
     # printed_answer = print_answers(prediction)
@@ -102,4 +96,6 @@ def server_error(e):
                        'result': []})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8777)
+    # Used when running locally only. When deploying to Cloud Run,
+    # a webserver process such as Gunicorn will serve the app.
+    app.run(host='0.0.0.0', port=8777, debug=True)
