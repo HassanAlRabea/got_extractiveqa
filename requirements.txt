@@ -3,4 +3,4 @@ Flask
 gunicorn
 futures
 farm-haystack
-faiss
+faiss-cpu
