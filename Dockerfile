@@ -28,8 +28,8 @@ RUN apt-get install -y poppler-utils
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Required to fix issues with faiss
-RUN apt-get install libopenblas-dev \
- && apt-get install libomp-dev
+RUN apt-get install -y libopenblas-dev \
+ && apt-get install -y libomp-dev
 
 # Copying src code to Container
 COPY . /usr/src/app
