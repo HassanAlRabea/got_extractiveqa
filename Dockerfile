@@ -50,4 +50,4 @@ EXPOSE $PORT
 VOLUME ["/app-data"]
 
 # Running Python Application
-CMD gunicorn -b :$PORT -c gunicorn.conf.py app:app
+CMD exec gunicorn --bind :$PORT -c gunicorn.conf.py --timeout 0 app:app
