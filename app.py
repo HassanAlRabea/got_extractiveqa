@@ -2,7 +2,7 @@
 import json
 import logging
 from flask_cors import CORS
-from flask import Flask, request, jsonify
+from flask import Flask
 from haystack.preprocessor.cleaning import clean_wiki_text
 from haystack.preprocessor.utils import convert_files_to_dicts
 from haystack.reader.farm import FARMReader
