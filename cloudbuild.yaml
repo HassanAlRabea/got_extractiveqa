@@ -1,8 +1,6 @@
-steps:
-
 # Run the app and dependencies in the background using docker-compose. Test
 steps:
 - name: 'gcr.io/$PROJECT_ID/docker-compose'
-  args: ['up']
+  args: ['up --build']
 tags: ['cloud-builders-community']
 timeout: 3600s

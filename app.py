@@ -4,7 +4,7 @@ import logging
 from flask_cors import CORS
 from flask import Flask
 from haystack.preprocessor.cleaning import clean_wiki_text
-from haystack.preprocessor.utils import convert_files_to_dicts
+from haystack.preprocessor.utils import convert_files_to_dicts,fetch_archive_from_http
 from haystack.reader.farm import FARMReader
 from haystack.document_store.elasticsearch import ElasticsearchDocumentStore
 from haystack.retriever.sparse import ElasticsearchRetriever
@@ -29,6 +29,10 @@ app.config["port"] = "9200"
 @app.route('/update_docustore')
 def update_docustore():
     index = "document"
+
+    # Fetches text files archived in a zip from an S3 bucket, unzips them and stores them in the output directory as text files.
+    s3_url = "https://s3.eu-central-1.amazonaws.com/deepset.ai-farm-qa/datasets/documents/wiki_gameofthrones_txt.zip"
+    fetch_archive_from_http(url=s3_url, output_dir=app.config["data"])
 
     #converts txt files into a list of documents, with some cleaning done
     all_docs = convert_files_to_dicts(
