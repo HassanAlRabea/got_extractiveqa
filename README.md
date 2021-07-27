@@ -31,7 +31,7 @@ Afterwards, you can ask any GoT question like so:
 
 # How the application works
 
-[<img src="https://raw.githubusercontent.com/deepset-ai/haystack/master/docs/_src/img/concepts_haystack_handdrawn.png">](https://raw.githubusercontent.com/deepset-ai/haystack/master/docs/_src/img/concepts_haystack_handdrawn.png)
+[<img src="https://raw.githubusercontent.com/deepset-ai/haystack/master/docs/_src/img/concepts_haystack_handdrawn.png">](https://github.com/deepset-ai/haystack)
 
 1. **Retrieve the raw data**
 
