@@ -30,11 +30,14 @@ Afterwards, you can ask any GoT question like so:
 
 
 # How the application works
+
+[<img src="https://raw.githubusercontent.com/deepset-ai/haystack/master/docs/_src/img/concepts_haystack_handdrawn.png">](https://raw.githubusercontent.com/deepset-ai/haystack/master/docs/_src/img/concepts_haystack_handdrawn.png)
+
 1. **Retrieve the raw data**
 
     The raw Game of Thrones data is comprised of 517 wikipedia articles that were converted to text files and stored in the following [S3 Bucket](https://s3.eu-central-1.amazonaws.com/deepset.ai-farm-qa/datasets/documents/wiki_gameofthrones_txt.zip). 
 
-    One the prepocessing tools available in Haystack is `fetch_archive_from_http`, which
+    One of the preprocessing tools available in Haystack is `fetch_archive_from_http`, which
     fetches an archive (zip or tar.gz) from a url via http and extracts the content to an output directory. In our case, it was used to store the data under the following application directory: `/usr/src/app/data/got_txts`.
 
 2. **Setup the DocumentStore**
@@ -43,7 +46,8 @@ Afterwards, you can ask any GoT question like so:
     
     The current implementations of the DocumentStore is the ElasticsearchDocumentStore. It leverages Elasticsearch and it comes preloaded with features like full-text queries, BM25 retrieval, and vector storage for text embeddings. 
 
-    When a query is made, the Retrievers will operate on top of this DocumentStore to find the relevant documents for a query. The DocumentStore is initialized using the follow haystack method:
+    When a query is made, the Retrievers will operate on top of this DocumentStore to find the relevant documents for a query. Since we are not using a dense retriever, we don't have to worry about the embedding vector parameters and just use the default ones.
+    The DocumentStore is initialized using the follow haystack method:
     ```
         document_store = ElasticsearchDocumentStore(host=app.config["host"],
                                                 port=app.config["port"],
@@ -82,7 +86,9 @@ Afterwards, you can ask any GoT question like so:
     
     Retrievers are simple but fast algorithms that identify candidate documents for a given query from a large collection of documents. Retrievers narrow down the search space significantly and are therefore crucial for scalable Q&A syetms. Haystack supports sparse methods (TF-IDF, BM25, custom Elasticsearch queries) and state of the art dense methods (e.g., sentence-transformers and Dense Passage Retrieval). 
 
-    For our use case, we leverage the `ElasticsearchRetriever` which utilizes the BM25 method. BM25 is a variant of TF-IDF that is recommend if you are looking for a retrieval method that does not need a neural network for indexing. It improves upon TF-IDF in two main aspects: 
+    For our use case, we leverage the `ElasticsearchRetriever` which utilizes the BM25 method. BM25 is a variant of TF-IDF that is recommend if you are looking for a retrieval method that does not need a neural network for indexing. It is a bag-of-words retrieval function that ranks a set of documents based on the query terms appearing in each document, regardless of their proximity within the document. So of course it won't capture the semantic meaning of the query as a deep learning dense retrieval model would but it is quite fast and good enough.
+
+    It improves upon the TF-IDF method in two main aspects: 
 
     - It saturates tf after a set number of occurrences of the given term in the document
     - It normalizes by document length so that short documents are favoured over long documents if they have the same amount of word overlap with the query
@@ -100,7 +106,9 @@ Afterwards, you can ask any GoT question like so:
     
     *FARM makes Transfer Learning with BERT & Co simple, fast and enterprise-ready. It's built upon transformers and provides additional features to simplify the life of developers: Parallelized preprocessing, highly modular design, multi-task learning, experiment tracking, easy debugging and close integration with AWS SageMake*
 
-    In our application we leverage the FARM framework and chose the roberta-base-squad2 model. A model that has been trained on the Squad dataset and offers a good balance between speed & accuracy. We define it like so:
+    In our application we leverage the FARM framework and chose the `roberta-base-squad2` model. A model that has been trained on the Squad dataset and offers a good balance between speed & accuracy. In the class of base sized models trained on SQuAD, RoBERTa has shown better performance than BERT and can be capably handled by any machine equipped with a basic GPU. It is recommended for anyone wanting to create a preformat and computationally reasonable instance of Haystack. If speed was more important than accuracy, we would have chosen the MiniLM model. It is a smaller model that is trained to mimic larger models through the distillation process, and it outperforms the BERT base on SQuAD even though it is about 40% smaller. If we wanted more accuracy however, a state of the art model and had the necessary resources, we would have went with ALBERT XXL.
+
+    So we define it like so:
 
     ```
     reader = FARMReader(model_name_or_path="deepset/roberta-base-squad2", use_gpu=False)
@@ -116,7 +124,8 @@ Afterwards, you can ask any GoT question like so:
 
 5. **Run the pipeline**
 
-    Finally, once the pipeline is defined, the pipe is run with each query the model receives and returns the top k answers (which can be modified according to the use case). You can control the number of results returned by both the retriever & reader:
+    Finally, once the pipeline is defined, the pipe is run with each query (question) the pipe receives. The retriever ranks a set of documents based on the query terms appearing in each document, regardless of their proximity within the document. It will then return the top k documents for the reader to analyze. The reader will then go through the documents returned by the retriever in detail to find an answer. The Reader takes multiple passages of texts as input and returns the top-k answers. The number of documents and answers returned can be specified during the prediction:
     ```
     prediction = pipe.run(query=question, top_k_retriever=10, top_k_reader=5)
     ```
+    In our case, we return the top 10 documents out of the 500 documents but only return the top 5 answers from those documents. It is unnecessary to return more than that for a simple Q&A system. 
