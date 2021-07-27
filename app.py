@@ -4,7 +4,7 @@ import logging
 from flask_cors import CORS
 from flask import Flask
 from haystack.preprocessor.cleaning import clean_wiki_text
-from haystack.preprocessor.utils import convert_files_to_dicts,fetch_archive_from_http
+from haystack.preprocessor.utils import convert_files_to_dicts, fetch_archive_from_http
 from haystack.reader.farm import FARMReader
 from haystack.document_store.elasticsearch import ElasticsearchDocumentStore
 from haystack.retriever.sparse import ElasticsearchRetriever
@@ -40,7 +40,7 @@ def update_docustore():
         clean_func=clean_wiki_text,
         split_paragraphs=False)
 
-    #initialization of the Haystack Elasticsearch document storage
+    #initialization of the Haystack Elasticsearch document storage to store the files
     document_store = ElasticsearchDocumentStore(host=app.config["host"],
                                                 port=app.config["port"],
                                                 username=app.config["username"],
@@ -76,13 +76,14 @@ def qna(question):
     
     reader = FARMReader(model_name_or_path="deepset/roberta-base-squad2", use_gpu=False)
 
-    #initialization of ElasticRetriever
+    #initialization of ElasticRetriever - to narrow down our search
     retriever = ElasticsearchRetriever(document_store= document_store)
+
     # Finder sticks together reader and retriever
     # in a pipeline to answer our actual questions.
     pipe = ExtractiveQAPipeline(reader, retriever)
 
-    # predict n answers - ADD MORE INFOR HERE
+    # predict top k answers
     prediction = pipe.run(query=question, top_k_retriever=10, top_k_reader=5)
     answer = []
     # printed_answer = print_answers(prediction)
